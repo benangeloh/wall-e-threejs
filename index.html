@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <style> body { margin: 0; } </style>
+    <meta charset="UTF-8">
+    <title>Wall-E Cinematic</title>
+    <style> body { margin: 0; overflow: hidden; background: #000; } </style>
     <script type="importmap">
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+                "gsap": "https://unpkg.com/gsap@3.12.5/index.js"
             }
         }
     </script>
 </head>
 <body>
-    <script type="module" src="./main.js"></script>
+    <script type="module" src="./src/main.js"></script>
 </body>
 </html>
