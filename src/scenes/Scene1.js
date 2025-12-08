@@ -239,7 +239,7 @@ export default {
             new THREE.Vector3(2, 3.5, 8), // begins to arc
             new THREE.Vector3(0.0, 3.6, 9), // rounding front
             new THREE.Vector3(-2, 3.6, 8.6), // around front right
-            new THREE.Vector3(-3, 3.6, 8.0), // curve inwards
+            new THREE.Vector3(-2.2, 3.6, 8.0), // curve inwards
             new THREE.Vector3(-1.6, 3.5, 7.0), // ends in front of Wall-E
         ], false); // closed = false (not a loop)
 
@@ -384,6 +384,10 @@ export default {
         }, "+=0.2");
 
 
+
+
+        // LEAN DOWN
+
         
         tl.to([leftArm?.rotation].filter(Boolean), {
             x: "+=0.3",
@@ -477,6 +481,8 @@ export default {
            lenses.rotation,
         ], { x: "-=0.25", duration: 1.2, ease: "back.inOut" }, "<");
 
+
+        tl.call(onSceneComplete, null, "-=0.5");
 
         this.timeline = tl;
     },
