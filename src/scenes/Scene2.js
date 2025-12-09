@@ -3,7 +3,7 @@ import gsap from 'gsap';
 
 export default {
     start(context, onSceneComplete) {
-        const { models, camera, scene } = context;
+        const { models, camera, scene, mixers } = context;
 
         const wallE = models.wallE.scene;
         const boat = models.boat.scene;
@@ -114,8 +114,19 @@ export default {
         this.state = {
             wheels,
             roach,
-            wheelSpin: 0
+            wheelSpin: 0,
+            trackActions: []
         };
+
+        const wallEMixer = mixers.wallE;
+        if (wallEMixer && models.wallE.animations.length > 0) {
+            models.wallE.animations.forEach(clip => {
+                const action = wallEMixer.clipAction(clip);
+                action.play();
+                action.timeScale = 0; 
+                this.state.trackActions.push(action);
+            });
+        }
 
         // this.roachMixer = new THREE.AnimationMixer(roach);
         // if (models.roach.animations && models.roach.animations.length > 0) {
@@ -136,8 +147,8 @@ export default {
             z: "-=0.8",             // continue sliding back
             duration: 2,
             ease: "back.out",
-            onStart: ()=> gsap.to(this.state,{ wheelSpin:-6,duration:0.6 }),
-            onComplete:()=> gsap.to(this.state,{ wheelSpin:0,duration:0.8 })
+            onStart: ()=> gsap.to(this.state,{ wheelSpin:-6,duration:0.4 }),
+            onComplete:()=> gsap.to(this.state,{ wheelSpin:0,duration:0.4 })
         });
 
         tl.to([...body.map(b => b.rotation)], {
@@ -154,8 +165,8 @@ export default {
         }, "<");
 
         tl.to(neck.position,{
-            y: "-=0.35",
-            z: "-=1.4",
+            y: "-=0.25",
+            z: "-=1.5",
             duration: 2,
             ease: "back.out"
         },"<");
@@ -168,21 +179,19 @@ export default {
 
         // eyes + Lenses droop w/ head
         tl.to([eyes.position],{
-            y: "-=0.25",
-            z: "-=1.325",
+            y: "+=0.15",
+            z: "-=1.825",
             duration: 2,
-            ease: "back.out"
         },"<");
 
         tl.to([lenses.position],{
-            y: "-=0.15",
-            z: "-=1.325",
+            y: "+=0.25",
+            z: "-=1.825",
             duration: 2,
-            ease: "back.out"
         },"<");
 
         tl.to([eyes.rotation,lenses.rotation],{
-            x: "-=0.1",        // subtle soften instead of stiff stare
+            x: "-=0.1",
             duration: 2,
             ease: "back.out"
         },"<");
@@ -312,11 +321,17 @@ export default {
     update(delta, context) {
         if (!this.state) return;
 
-        const { wheels, neck, eyes, lenses, body, wheelSpin, roach } = this.state;
+        const { wheels, neck, eyes, lenses, body, wheelSpin, roach, trackActions } = this.state;
 
         wheels.forEach(w => {
             if (w) w.rotation.x += wheelSpin * delta;
         });
+
+        if (trackActions) {
+            trackActions.forEach(action => {
+                action.timeScale = wheelSpin * 0.1; 
+            });
+        }
 
         if (this.state?.roach && Math.random() < 0.1) {
             this.state.roach.rotation.x += (Math.random() - 0.5) * 0.05;

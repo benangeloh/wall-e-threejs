@@ -3,7 +3,7 @@ import gsap from 'gsap';
 
 export default {
     start(context, onSceneComplete) {
-        const { models, camera, scene } = context;
+        const { models, camera, scene, mixers } = context;
 
         const wallE = models.wallE.scene;
         const boat = models.boat.scene;
@@ -115,8 +115,19 @@ export default {
         this.state = {
             wheels,
             roach,
-            wheelSpin: 0
+            wheelSpin: 0,
+            trackActions: []
         };
+
+        const wallEMixer = mixers.wallE;
+        if (wallEMixer && models.wallE.animations.length > 0) {
+            models.wallE.animations.forEach(clip => {
+                const action = wallEMixer.clipAction(clip);
+                action.play();
+                action.timeScale = 0; 
+                this.state.trackActions.push(action);
+            });
+        }
 
         // ============================================================
         // 3. NEW TIMELINE
@@ -129,20 +140,23 @@ export default {
         tl.to(wallE.position, {
             z: "+=1.2",
             duration: 0.9,
-            ease: "power2.inOut",
+            ease: "power2.out",
             onStart: () => {
-                gsap.to(this.state, {
-                    wheelSpin: -4,
-                    duration: 0.3
+                gsap.to(this.state, { 
+                    wheelSpin: 4,  
+                    duration: 0.2,
+                    ease: "power2.out",
                 });
             },
             onComplete: () => {
-                gsap.to(this.state, {
-                    wheelSpin: 0,
-                    duration: 0.6
+                gsap.to(this.state, { 
+                    wheelSpin: 0, 
+                    duration: 0.6,
+                    ease: "power2.out",
                 });
             }
-        }, "-=0.1");
+        });
+
         tl.to([rightArm?.rotation].filter(Boolean), {
             x: "-=0.1",
             y: "+=1.3",
@@ -174,8 +188,6 @@ export default {
             duration: 0.9,
             ease: "back.out"
         }, "<");
-
-
                 
         tl.to([ 
             ...body.map(b => b.position),
@@ -231,7 +243,6 @@ export default {
         ], { x: 0, duration: 0.5, ease: "back.inOut" }, "<");
 
         tl.to([rightArm?.rotation].filter(Boolean), {
-
             x: "-=0.1",
             duration: 0.5,
             ease: "back.inOut"
@@ -334,11 +345,11 @@ export default {
         tl.to([wallE.position], {
             z: "-=0.3",
             duration: 1,
-            ease: "power2.inOut"
+            ease: "power2.inOut",
+            onStart: () => gsap.to(this.state, { wheelSpin: -5, duration: 0.5, ease:"power2.in" }), 
+            onComplete: () => gsap.to(this.state, { wheelSpin: 0, duration: 0.5, ease:"power2.out" })
         }, "<");
-
     
-
         // points down
 
         tl.to([leftArm?.rotation].filter(Boolean), {
@@ -366,7 +377,7 @@ export default {
             x: 0,
             y: 3.5,
             z: 5, 
-            duration: 1.6,
+            duration: 1.0,
             ease: "back.inOut",
             onStart: () => {
                 // neg spin because he is driving backwards to z=0
@@ -379,7 +390,7 @@ export default {
 
         tl.to(wallE.rotation, {
             x: 0, y: 0, z: 0,
-            duration: 1.6,
+            duration: 1.0,
             ease: "back.inOut"
         }, "<");
 
@@ -391,7 +402,7 @@ export default {
             eyes.position,
             lenses.position,
             base.position
-        ], { x: 0, y: 0, z: 0, duration: 1.6, ease: "back.inOut" }, "<");
+        ], { x: 0, y: 0, z: 0, duration: 1.0, ease: "back.inOut" }, "<");
 
         tl.to([
             ...body.map(b => b.rotation),
@@ -399,29 +410,29 @@ export default {
             eyes.rotation,
             lenses.rotation,
             base.rotation
-        ], { x: 0, y: 0, z: 0, duration: 1.6, ease: "back.inOut" }, "<");
+        ], { x: 0, y: 0, z: 0, duration: 1.0, ease: "back.inOut" }, "<");
 
         if (rightArm) {
             tl.to(rightArm.rotation, { 
                 x: 2.7, y: 0, z: 0, 
-                duration: 1.6, ease: "back.inOut" 
+                duration: 1.0, ease: "back.inOut" 
             }, "<");
             
             tl.to(rightArm.position, { 
                 x: "-=0", y:"+=0.2", z: "-=0.5",
-                duration: 1.6, ease: "back.inOut" 
+                duration: 1.0, ease: "back.inOut" 
             }, "<");
         }
 
         if (leftArm) {
             tl.to(leftArm.rotation, { 
                 x: -0.5, y: 0, z: 0, 
-                duration: 1.6, ease: "back.inOut" 
+                duration: 1.0, ease: "back.inOut" 
             }, "<");
             
             tl.to(leftArm.position, { 
                 x: 0, y: 0.4, z: 0, 
-                duration: 1.6, ease: "back.inOut" 
+                duration: 1.0, ease: "back.inOut" 
             }, "<");
         }
 
@@ -431,7 +442,7 @@ export default {
 
         // to edge of ramp
         tl.to(wallE.position, {
-            z: 8,
+            z: 8.5,
             duration: 0.6,
             ease: "power1.in",
             onStart: () => gsap.to(this.state, { wheelSpin: 10, duration: 0.5 })
@@ -441,7 +452,7 @@ export default {
         // down the ramp
         tl.to(wallE.position, {
             z: "+=11",
-            y: 2.6,
+            y: 3,
             duration: 1,
             ease: "none"
         });
@@ -494,13 +505,13 @@ export default {
                  if (this.roachMixer) gsap.to(this.roachMixer, { timeScale: 0, duration: 0.2 });
                  gsap.to(roach.rotation, { y: 0, duration: 0.3 });
             }
-        }, "-=4.5");
+        }, "-=3.9");
 
 
         // --- ROACH JUMP ---
         // roach follows + hops
-        tl.to(roach.position, { z: 7, duration: 0.6, ease: "power1.in" }, "-=2");
-        tl.to(roach.position, { y: 4.5, duration: 0.3, ease: "power1.out", yoyo: true, repeat: 1 }, "-=2");
+        tl.to(roach.position, { z: 7, duration: 0.6, ease: "power1.in" }, "-=1.4");
+        tl.to(roach.position, { y: 4.5, duration: 0.3, ease: "power1.out", yoyo: true, repeat: 1 }, "-=1.4");
 
         const roachZigzagCurve = new THREE.CatmullRomCurve3([
             new THREE.Vector3(2.5, 3.5, 7),
@@ -525,14 +536,20 @@ export default {
                 roach.position.copy(p);
                 roach.rotation.y = Math.atan2(dir.x, dir.z);
             }
-        }, "-=1");
+        }, "-=0.4");
         this.timeline = tl;
     },
 
     update(delta, context) {
         if (!this.state) return;
 
-        const { wheels, wheelSpin } = this.state;
+        const { wheels, roach, wheelSpin, trackActions } = this.state;
+
+        if (trackActions) {
+            trackActions.forEach(action => {
+                action.timeScale = wheelSpin * 0.1; 
+            });
+        }
 
         wheels.forEach(w => {
             if (w) w.rotation.x += wheelSpin * delta;

@@ -3,7 +3,7 @@ import gsap from 'gsap';
 
 export default {
     start(context, onSceneComplete) {
-        const { models, camera, scene } = context;
+        const { models, camera, scene, mixers } = context;
 
         const wallE = models.wallE.scene;
         const boat = models.boat.scene;
@@ -62,7 +62,19 @@ export default {
             base,
             roach,
             wheelSpin: 0,
+            trackActions: [],
         };
+
+        const wallEMixer = mixers.wallE;
+        if (wallEMixer && models.wallE.animations.length > 0) {
+            models.wallE.animations.forEach(clip => {
+                const action = wallEMixer.clipAction(clip);
+                action.play();
+                action.timeScale = 0;
+                
+                this.state.trackActions.push(action);
+            });
+        }
 
         this.roachMixer = new THREE.AnimationMixer(roach);
 
@@ -494,12 +506,17 @@ export default {
     update(delta, context) {
         if (!this.state) return;
 
-        const { wheels, neck, eyes, lenses, body, wheelSpin, roach } = this.state;
+        const { wheels, neck, eyes, lenses, body, wheelSpin, roach, trackActions } = this.state;
 
-        // Wheel rotation (procedural)
         wheels.forEach(w => {
             if (w) w.rotation.x += wheelSpin * delta;
         });
+
+        if (trackActions) {
+            trackActions.forEach(action => {
+                action.timeScale = wheelSpin * 0.1; 
+            });
+        }
 
         if (this.state?.roach && Math.random() < 0.1) {
             this.state.roach.rotation.x += (Math.random() - 0.5) * 0.05;
