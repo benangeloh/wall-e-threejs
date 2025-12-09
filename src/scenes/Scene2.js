@@ -299,6 +299,8 @@ export default {
 
 
 
+        tl.call(onSceneComplete, null, "-=2");
+
         this.timeline = tl;
     },
 
