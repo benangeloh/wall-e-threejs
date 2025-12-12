@@ -5,6 +5,10 @@ export default {
     start(context, onSceneComplete) {
         const { models, camera, scene, mixers } = context;
 
+        if (mixers.wallE) {
+            mixers.wallE.stopAllAction();
+        }
+
         const wallE = models.wallE.scene;
         const boat = models.boat.scene;
         const roach = models.roach.scene;

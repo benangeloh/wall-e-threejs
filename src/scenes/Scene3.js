@@ -560,6 +560,9 @@ export default {
         gsap.killTweensOf(this.state);
         gsap.killTweensOf(context.camera.position);
         gsap.killTweensOf(context.camera.rotation);
+        if (context.mixers.wallE) {
+            context.mixers.wallE.stopAllAction();
+        }
         if (this.timeline) this.timeline.kill();
         this.state = null;
     }
