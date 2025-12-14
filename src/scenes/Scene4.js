@@ -85,9 +85,7 @@ export default {
         // 3. TIMELINE
         // ============================================================
 
-        const tl = gsap.timeline({
-            onComplete: onSceneComplete
-        });
+        const tl = gsap.timeline();
 
         // SETUP POSE
         if (leftArm) { 
@@ -189,6 +187,8 @@ export default {
             duration: 1.0,
             ease: "power2.in"
         }, ">-1.0"); 
+
+        tl.call(onSceneComplete, null, "-=0.5");
 
         tl.to(this.cameraTarget, {
             y: -0.1,
