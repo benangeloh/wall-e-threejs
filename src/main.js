@@ -5,6 +5,7 @@ import { SceneManager } from './SceneManager.js';
 import Scene1 from './scenes/Scene1.js';
 import Scene2 from './scenes/Scene2.js';
 import Scene3 from './scenes/Scene3.js';
+import Scene4 from './scenes/Scene4.js';    
 
 async function init() {
     // --- 1. THREE.JS BOILERPLATE ---
@@ -57,9 +58,10 @@ async function init() {
     const manager = new SceneManager(context);
     
     manager.setScenes([
-        Scene1,
-        Scene2,
-        Scene3
+        // Scene1,
+        // Scene2,
+        Scene3,  
+        Scene4
     ]);
 
     // --- 4. START LOOP ---

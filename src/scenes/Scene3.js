@@ -537,6 +537,9 @@ export default {
                 roach.rotation.y = Math.atan2(dir.x, dir.z);
             }
         }, "-=0.4");
+
+        tl.to({}, { duration: 0.7 });
+        
         this.timeline = tl;
     },
 
