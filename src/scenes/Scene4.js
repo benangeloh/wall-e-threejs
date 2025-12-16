@@ -80,6 +80,7 @@ export default {
         wallE.add(dust.group);
         dust.group.position.set(0, 2, 3.2); 
 
+        this.dustGroup = dust.group;
 
         // ============================================================
         // 3. TIMELINE
@@ -208,5 +209,10 @@ export default {
     end(context) {
         if (this.timeline) this.timeline.kill();
         this.cameraTarget = null;
+
+        if (this.dustGroup) {
+            this.dustGroup.removeFromParent();
+            this.dustGroup = null;
+        }
     }
 };

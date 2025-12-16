@@ -7,6 +7,7 @@ import Scene2 from './scenes/Scene2.js';
 import Scene3 from './scenes/Scene3.js';
 import Scene4 from './scenes/Scene4.js';    
 import Scene5 from './scenes/Scene5.js';
+import Scene6 from './scenes/Scene6.js';
 
 async function init() {
     // --- 1. THREE.JS BOILERPLATE ---
@@ -62,8 +63,9 @@ async function init() {
         // Scene1,
         // Scene2,
         // Scene3,  
-        Scene4,
-        Scene5
+        // Scene4,
+        // Scene5,
+        Scene6
     ]);
 
     // --- 4. START LOOP ---

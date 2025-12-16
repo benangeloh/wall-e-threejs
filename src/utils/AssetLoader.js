@@ -9,17 +9,19 @@ export const AssetLoader = {
             loader.load(url, (gltf) => resolve(gltf));
         });
 
-        const [boatData, wallEData, roachData, trashPileData, floorData, cubeData] = await Promise.all([
+        const [boatData, wallEData, roachData, trashPileData, floorData, cubeData, braData] = await Promise.all([
             loadModel('./models/lcvp_higgins_boat_1945.glb'),
             loadModel('./models/wall-e.glb'),
             loadModel('./models/roach.glb'),
             loadModel('./models/background/pile_metal.glb'),
             loadModel('./models/landscape/wasteland_floor.glb'),
-            loadModel('./models/scrap_cube.glb')
+            loadModel('./models/scrap_cube.glb'),
+            loadModel('./models/props/bra.glb')
         ]);
 
         return {
             boat: { scene: boatData.scene, animations: boatData.animations },
+            bra: { scene: braData.scene, animations: braData.animations },
             wallE: { scene: wallEData.scene, animations: wallEData.animations },
             roach: { scene: roachData.scene, animations: roachData.animations },
             trashPile: { scene: trashPileData.scene, animations: trashPileData.animations },

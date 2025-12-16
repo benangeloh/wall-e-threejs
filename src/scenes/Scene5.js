@@ -246,8 +246,9 @@ export default {
 
     end(context) {
         if (this.timeline) this.timeline.kill();
-        // if (this.cubeGroup) {
-        //     context.scene.remove(this.cubeGroup);
-        // }
+        if (this.cubeGroup) {
+            context.scene.remove(this.cubeGroup);
+            this.cubeGroup = null;
+        }
     }
 };
