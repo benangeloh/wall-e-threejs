@@ -8,6 +8,10 @@ export default {
         // ============================================================
         // 0. CLEANUP & DEEP CLEAN
         // ============================================================
+
+        this.scene6Group = new THREE.Group();
+        scene.add(this.scene6Group);
+
         
         this.clones = [];
 
@@ -17,7 +21,6 @@ export default {
         if(models.roach) models.roach.scene.visible = false;
         if (mixers.wallE) mixers.wallE.stopAllAction();
 
-        // Bersihkan sampah di badan Wall-E
         const wallE = models.wallE.scene;
         wallE.traverse((child) => {
             if (child.isMesh) {
@@ -32,53 +35,43 @@ export default {
         // 1. SETUP ENVIRONMENT (LANTAI DUPLIKAT & GEDUNG JAUH)
         // ============================================================
 
-        // --- A. LANGIT & CAHAYA (ORANYE GURUN) ---
         const desertColor = 0xcc8e5a; 
         scene.background = new THREE.Color(desertColor);
         scene.fog = new THREE.FogExp2(desertColor, 0.0012); 
 
-        if (!this.sceneLight) {
-            this.sceneLight = new THREE.HemisphereLight(0xffaa00, 0x444444, 1.5);
-            scene.add(this.sceneLight);
-            this.sceneSun = new THREE.DirectionalLight(0xffffff, 2.0);
-            this.sceneSun.position.set(50, 100, 50);
-            scene.add(this.sceneSun);
-        }
+        // if (!this.sceneLight) {
+        //     this.sceneLight = new THREE.HemisphereLight(0xffaa00, 0x444444, 1.5);
+        //     scene.add(this.sceneLight);
+        //     this.sceneSun = new THREE.DirectionalLight(0xffffff, 2.0);
+        //     this.sceneSun.position.set(50, 100, 50);
+        //     scene.add(this.sceneSun);
+        // }
 
-        // --- B. LANTAI (DUPLIKASI / TILING) ---
-        // Alih-alih di-scale 100x, kita duplikat modelnya berkali-kali
         if (models.floor) {
             const floorModel = models.floor.scene;
-            floorModel.visible = true; // Pastikan model asli visible (walau kita pakai clone)
+            floorModel.visible = true;
             
-            // Buat Grup untuk menampung semua ubin lantai agar rapi
             this.floorGroup = new THREE.Group();
             scene.add(this.floorGroup);
 
-            const tileSize = 13; // Ukuran kira-kira 1 tile tanah
+            const tileSize = 13;
             
-            // Kita buat Grid Raksasa:
-            // X: dari -10 ke 10 (Lebar ke samping)
-            // Z: dari -25 ke 5 (Panjang ke belakang sampai gedung jauh)
             for (let x = -15; x <= 5; x++) {
                 for (let z = -10; z <= 6; z++) {
                     const tile = floorModel.clone();
                     
-                    // Posisi ubin disusun berjejer
                     tile.position.set(x * tileSize, -0.4, z * tileSize);
                     
-                    // Variasi Rotasi Acak (Biar tanahnya gak kelihatan 'kopi-paste' banget)
                     const randomRot = Math.floor(Math.random() * 4) * (Math.PI / 2);
                     tile.rotation.set(0, randomRot, 0);
                     
-                    tile.scale.set(1, 1, 1); // Ukuran normal, tidak ditarik
+                    tile.scale.set(1, 1, 1);
                     
                     this.floorGroup.add(tile);
                 }
             }
         }
 
-        // --- C. GEDUNG BATA (RUMAH) ---
         if (models.buildingBrick) {
             const brickBg = models.buildingBrick.scene;
             brickBg.visible = true;
@@ -89,7 +82,6 @@ export default {
             scene.add(brickBg);
         }
 
-        // --- C. GEDUNG Ruko (RUMAH) ---
         if (models.buildingStore) {
             const storeBg = models.buildingStore.scene;
             storeBg.visible = true;
@@ -100,7 +92,6 @@ export default {
             scene.add(storeBg);
         }
 
-        // --- D. SKYSCRAPER (BACKGROUND JAUH) ---
         if (models.buildingHigh) {
             const towerModel = models.buildingHigh.scene;
             const skyscraper = models.buildingHigh.scene;
@@ -121,36 +112,35 @@ export default {
             this.clones.push(skyscraper1);
         }
 
-        // --- E. TUMPUKAN SAMPAH (SISI KIRI WALL-E) ---
         if (models.trashPile) {
             const pileModel = models.trashPile.scene;
             const pile = models.trashPile.scene;
             pile.visible = true;
-            pile.position.set(10, -0.25, 49); // Di Kiri Wall-E
+            pile.position.set(10, -0.25, 49);
             pile.rotation.set(0, 2.5, 0); 
             pile.scale.set(1, 1, 1);
-            scene.add(pile);
+            this.scene6Group.add(pile);
 
             const pileLeft = pileModel.clone();
             pileLeft.visible = true;
-            pileLeft.position.set(-100, -0.25, 20); // Kanan, agak mundur dikit
-            pileLeft.rotation.set(0, -0.5, 0);  // Rotasi beda biar gak kembar
+            pileLeft.position.set(-100, -0.25, 20);
+            pileLeft.rotation.set(0, -0.5, 0);
             pileLeft.scale.set(1.5, 1.5, 1.5);
-            scene.add(pileLeft);
+            this.scene6Group.add(pileLeft);
 
-            const pileRight = pileModel.clone(); // Duplikat dari model asli
+            const pileRight = pileModel.clone();
             pileRight.visible = true;
-            pileRight.position.set(0, -0.25, -50); // Kanan
+            pileRight.position.set(0, -0.25, -50);
             pileRight.rotation.set(0, -0.5, 0); 
             pileRight.scale.set(1, 1, 1);
-            scene.add(pileRight);
+            this.scene6Group.add(pileRight);
 
             const pileRightBack = pileModel.clone();
             pileRightBack.visible = true;
-            pileRightBack.position.set(30, -0.25, -70); // Kanan, agak mundur dikit
-            pileRightBack.rotation.set(0, Math.PI, 0);  // Rotasi beda biar gak kembar
+            pileRightBack.position.set(30, -0.25, -70);
+            pileRightBack.rotation.set(0, Math.PI, 0);
             pileRightBack.scale.set(1.25, 1.25, 1.25);
-            scene.add(pileRightBack);
+            this.scene6Group.add(pileRightBack);
         }
         // ============================================================
         // 2. SETUP KARAKTER
@@ -168,7 +158,6 @@ export default {
         bra.rotation.set(-1.4, 0.5, -1.5);
         scene.add(bra);
 
-        // Kamera
         camera.position.set(10, 3, 7); 
         camera.lookAt(-4, 3, 0);
 
@@ -1212,5 +1201,26 @@ export default {
         if (this.sceneLight) scene.remove(this.sceneLight);
         if (this.sceneSun) scene.remove(this.sceneSun);
         scene.fog = null;
+
+        if (models.trashPile?.scene) {
+            models.trashPile.scene.visible = false;
+        }
+
+        if (this.scene6Group) {
+            this.scene6Group.traverse(obj => {
+                if (obj.isMesh) {
+                    obj.geometry?.dispose();
+                    if (Array.isArray(obj.material)) {
+                        obj.material.forEach(m => m.dispose());
+                    } else {
+                        obj.material?.dispose();
+                    }
+                }
+            });
+
+            scene.remove(this.scene6Group);
+            this.scene6Group = null;
+        }
+
     }
 };

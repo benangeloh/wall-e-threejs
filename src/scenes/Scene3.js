@@ -17,13 +17,13 @@ export default {
         scene.background = new THREE.Color(desertColor);
         scene.fog = null; 
 
-        if (!this.sceneLight) {
-            this.sceneLight = new THREE.HemisphereLight(0xffaa00, 0x444444, 1.2);
-            scene.add(this.sceneLight);
-            this.sceneSun = new THREE.DirectionalLight(0xffffff, 2.0);
-            this.sceneSun.position.set(50, 100, 50);
-            scene.add(this.sceneSun);
-        }
+        // if (!this.sceneLight) {
+        //     this.sceneLight = new THREE.HemisphereLight(0xffaa00, 0x444444, 1.2);
+        //     scene.add(this.sceneLight);
+        //     this.sceneSun = new THREE.DirectionalLight(0xffffff, 2.0);
+        //     this.sceneSun.position.set(50, 100, 50);
+        //     scene.add(this.sceneSun);
+        // }
 
         if (models.floor) {
             const floorModel = models.floor.scene;

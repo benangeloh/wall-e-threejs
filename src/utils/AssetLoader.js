@@ -8,7 +8,7 @@ export const AssetLoader = {
             loader.load(url, (gltf) => resolve(gltf));
         });
 
-        const [boatData, wallEData, roachData, trashPileData, floorData, cubeData, braData,wallEKeyData, buildAData, buildBData, buildCData, waterPumpData, carData, glassData, cliffData] = await Promise.all([
+        const [boatData, wallEData, roachData, trashPileData, floorData, cubeData, braData,wallEKeyData, buildAData, buildBData, buildCData, waterPumpData, carData, glassData, cliffData, plantData] = await Promise.all([
             loadModel('./models/lcvp_higgins_boat_1945.glb'),
             loadModel('./models/wall-e.glb'),
             loadModel('./models/roach.glb'),
@@ -24,6 +24,7 @@ export const AssetLoader = {
             loadModel('./models/background/abandoned_car_near_yellow_cat_mine_utah.glb'),
             loadModel('./models/background/shattered_glass.glb'),   
             loadModel('./models/background/cliff0003.glb'),
+            loadModel('./models/props/plant.glb'),
         ]);
 
         return {
@@ -42,6 +43,7 @@ export const AssetLoader = {
             car: { scene: carData.scene, animations: carData.animations },
             glass: { scene: glassData.scene, animations: glassData.animations },
             dirt: { scene: cliffData.scene, animations: cliffData.animations },
+            plant: { scene: plantData.scene, animations: plantData.animations },
         };
     }
 };

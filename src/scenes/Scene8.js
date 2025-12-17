@@ -63,12 +63,48 @@ export default {
         eyes.rotation.set(-0.1, 0, 0);
         lenses.rotation.set(-0.1, 0, 0);
 
+        this.originalParents = new Map();
+
+        [
+            rightArm, leftArm, neck, eyes, lenses,
+            ...bodyParts
+        ].filter(Boolean).forEach(p => {
+            this.originalParents.set(p, p.parent);
+        });
+
+
+        this.originalTransforms = new Map();
+        [
+            rightArm, leftArm, neck, eyes, lenses,
+            ...bodyParts
+        ].filter(Boolean).forEach(p => {
+            this.originalTransforms.set(p, {
+                position: p.position.clone(),
+                rotation: p.rotation.clone(),
+                scale: p.scale.clone()
+            });
+        });
+
+
         this.leanGroup = new THREE.Group();
         wallE.add(this.leanGroup);
 
-        [...bodyParts, neck, eyes, lenses, leftArm, rightArm, base]
-            .filter(Boolean)
-            .forEach(p => this.leanGroup.attach(p));
+        [
+            ...bodyParts,
+            neck,
+            leftArm,
+            rightArm
+        ].filter(Boolean).forEach(part => {
+            this.leanGroup.attach(part);
+        });
+
+        this.eyeGroup = new THREE.Group();
+        this.leanGroup.add(this.eyeGroup);
+
+        [eyes, lenses].filter(Boolean).forEach(part => {
+            this.eyeGroup.attach(part);
+        });
+
 
         // ============================================================
         // 3. WALL-E ANIMATION STATE
@@ -437,7 +473,70 @@ export default {
         wheels.forEach(w => w && (w.rotation.x += wheelSpin * delta));
     },
 
-    end() {
+    end(context) {
         if (this.timeline) this.timeline.kill();
+
+        const { models, scene } = context;
+        const wallE = models.wallE.scene;
+
+        if (this.originalParents && this.originalTransforms) {
+            this.originalParents.forEach((parent, part) => {
+                parent.attach(part);
+
+                const t = this.originalTransforms.get(part);
+                if (t) {
+                    part.position.copy(t.position);
+                    part.rotation.copy(t.rotation);
+                    part.scale.copy(t.scale);
+                }
+            });
+
+            this.originalParents.clear();
+            this.originalTransforms.clear();
+        }
+
+
+        if (this.eyeGroup) {
+            this.eyeGroup.removeFromParent();
+            this.eyeGroup = null;
+        }
+
+        if (this.leanGroup) {
+            this.leanGroup.removeFromParent();
+            this.leanGroup = null;
+        }
+
+        wallE.position.set(0, 0, 0);
+        wallE.rotation.set(0, 0, 0);
+        wallE.scale.set(1, 1, 1);
+
+        wallE.visible = false;
+
+        if (this.cubeGroup) {
+            this.cubeGroup.traverse(obj => {
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) obj.material.dispose();
+            });
+            this.cubeGroup.parent?.remove(this.cubeGroup);
+            this.cubeGroup = null;
+        }
+
+        if (this.heroCube) {
+            this.heroCube.parent?.remove(this.heroCube);
+            this.heroCube.geometry.dispose();
+            this.heroCube.material.dispose();
+            this.heroCube = null;
+        }
+
+        if (this.heroCube2) {
+            this.heroCube2.parent?.remove(this.heroCube2);
+            this.heroCube2.geometry.dispose();
+            this.heroCube2.material.dispose();
+            this.heroCube2 = null;
+        }
+
+        if (models.trashPile?.scene) {
+            models.trashPile.scene.visible = false;
+        }
     }
 };

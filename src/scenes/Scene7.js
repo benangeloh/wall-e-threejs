@@ -181,6 +181,19 @@ export default {
                 this.state.trackActions.push(action);
             });
         }
+        
+        this.originalParents = new Map();
+
+        [
+            rightArm,
+            leftArm,
+            neck,
+            eyes,
+            lenses,
+            ...bodyParts
+        ].filter(Boolean).forEach(part => {
+            this.originalParents.set(part, part.parent);
+        });
 
         
         this.leanGroup = new THREE.Group();
@@ -402,7 +415,37 @@ export default {
 
     end(context) {
         if (this.timeline) this.timeline.kill();
-        
+
         const { models, scene } = context;
+
+        if (this.originalParents) {
+            this.originalParents.forEach((parent, part) => {
+                parent.attach(part);
+            });
+            this.originalParents.clear();
+            this.originalParents = null;
+        }
+
+        if (this.eyeGroup) {
+            this.eyeGroup.removeFromParent();
+            this.eyeGroup = null;
+        }
+
+        if (this.leanGroup) {
+            this.leanGroup.removeFromParent();
+            this.leanGroup = null;
+        }
+
+        const wallEKey = models.wallEKey.scene;
+        wallEKey.position.set(0, 0, 0);
+        wallEKey.rotation.set(0, 0, 0);
+        wallEKey.scale.set(1, 1, 1);
+
+        // Optional visibility cleanup
+        wallEKey.visible = false;
+
+        if (models.floor) models.floor.scene.visible = false;
+        if (models.trashPile) models.trashPile.scene.visible = false;
     }
+
 };
