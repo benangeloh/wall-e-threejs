@@ -42,6 +42,18 @@ export default {
 
         if (mixers.wallE) mixers.wallE.stopAllAction();
 
+        this.initialPose = {
+            leftArm: {
+                position: leftArm ? leftArm.position.clone() : null,
+                rotation: leftArm ? leftArm.rotation.clone() : null
+            },
+            rightArm: {
+                position: rightArm ? rightArm.position.clone() : null,
+                rotation: rightArm ? rightArm.rotation.clone() : null
+            }
+        };
+
+
         // ============================================================
         // 2. CREATE SMOKE FX (SPRITES)
         // ============================================================
@@ -96,7 +108,7 @@ export default {
         if (rightArm) { 
             rightArm.rotation.set(2.4, 0, 0);
             rightArm.position.y=0;
-            rightArm.position.Z=1;
+            rightArm.position.z=1;
         }
 
         // STEP 1: REACH IN (0.0 - 0.8s)
@@ -214,5 +226,24 @@ export default {
             this.dustGroup.removeFromParent();
             this.dustGroup = null;
         }
+
+        if (this.initialPose) {
+            const { leftArm, rightArm } = this.initialPose;
+
+            if (leftArm && leftArm.position) {
+                const la = context.models.wallE.scene.getObjectByName("hand_low001_wall_e_0");
+                la.position.copy(leftArm.position);
+                la.rotation.copy(leftArm.rotation);
+            }
+
+            if (rightArm && rightArm.position) {
+                const ra = context.models.wallE.scene.getObjectByName("hand_low002_wall_e_0");
+                ra.position.copy(rightArm.position);
+                ra.rotation.copy(rightArm.rotation);
+            }
+
+            this.initialPose = null;
+        }
+
     }
 };

@@ -8,6 +8,8 @@ import Scene3 from './scenes/Scene3.js';
 import Scene4 from './scenes/Scene4.js';    
 import Scene5 from './scenes/Scene5.js';
 import Scene6 from './scenes/Scene6.js';
+import Scene7 from './scenes/Scene7.js';
+import Scene8 from './scenes/Scene8.js';
 
 async function init() {
     // --- 1. THREE.JS BOILERPLATE ---
@@ -15,7 +17,7 @@ async function init() {
     scene.background = new THREE.Color(0x333333);
     scene.fog = new THREE.Fog(0x333333, 10, 50);
 
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
@@ -60,12 +62,14 @@ async function init() {
     const manager = new SceneManager(context);
     
     manager.setScenes([
-        // Scene1,
-        // Scene2,
-        // Scene3,  
-        // Scene4,
-        // Scene5,
-        Scene6
+        Scene1,
+        Scene2,
+        Scene3,  
+        Scene4,
+        Scene5,
+        Scene6,
+        Scene7,
+        Scene8,
     ]);
 
     // --- 4. START LOOP ---

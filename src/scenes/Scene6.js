@@ -6,23 +6,158 @@ export default {
         const { models, camera, scene, mixers } = context;
 
         // ============================================================
-        // 0. CLEANUP PREVIOUS SCENE
+        // 0. CLEANUP & DEEP CLEAN
         // ============================================================
-        if(models.trashPile) models.trashPile.scene.visible = false;
-        if(models.floor) models.floor.scene.visible = false;
-        if(models.trashCube) models.trashCube.scene.visible = false;
+        
+        this.clones = [];
+
+        if(models.trashPile) models.trashPile.scene.visible = false; 
+        if(models.trashCube) models.trashCube.scene.visible = false; 
         if(models.boat) models.boat.scene.visible = false;
         if(models.roach) models.roach.scene.visible = false;
         if (mixers.wallE) mixers.wallE.stopAllAction();
 
+        // Bersihkan sampah di badan Wall-E
+        const wallE = models.wallE.scene;
+        wallE.traverse((child) => {
+            if (child.isMesh) {
+                if (child.name.includes("Scrap") || child.name.includes("Cube")) {
+                    child.visible = false;
+                    child.parent.remove(child); 
+                }
+            }
+        });
+
         // ============================================================
-        // 1. SETUP ENVIRONMENT
+        // 1. SETUP ENVIRONMENT (LANTAI DUPLIKAT & GEDUNG JAUH)
+        // ============================================================
+
+        // --- A. LANGIT & CAHAYA (ORANYE GURUN) ---
+        const desertColor = 0xcc8e5a; 
+        scene.background = new THREE.Color(desertColor);
+        scene.fog = new THREE.FogExp2(desertColor, 0.0012); 
+
+        if (!this.sceneLight) {
+            this.sceneLight = new THREE.HemisphereLight(0xffaa00, 0x444444, 1.5);
+            scene.add(this.sceneLight);
+            this.sceneSun = new THREE.DirectionalLight(0xffffff, 2.0);
+            this.sceneSun.position.set(50, 100, 50);
+            scene.add(this.sceneSun);
+        }
+
+        // --- B. LANTAI (DUPLIKASI / TILING) ---
+        // Alih-alih di-scale 100x, kita duplikat modelnya berkali-kali
+        if (models.floor) {
+            const floorModel = models.floor.scene;
+            floorModel.visible = true; // Pastikan model asli visible (walau kita pakai clone)
+            
+            // Buat Grup untuk menampung semua ubin lantai agar rapi
+            this.floorGroup = new THREE.Group();
+            scene.add(this.floorGroup);
+
+            const tileSize = 13; // Ukuran kira-kira 1 tile tanah
+            
+            // Kita buat Grid Raksasa:
+            // X: dari -10 ke 10 (Lebar ke samping)
+            // Z: dari -25 ke 5 (Panjang ke belakang sampai gedung jauh)
+            for (let x = -15; x <= 5; x++) {
+                for (let z = -10; z <= 6; z++) {
+                    const tile = floorModel.clone();
+                    
+                    // Posisi ubin disusun berjejer
+                    tile.position.set(x * tileSize, -0.4, z * tileSize);
+                    
+                    // Variasi Rotasi Acak (Biar tanahnya gak kelihatan 'kopi-paste' banget)
+                    const randomRot = Math.floor(Math.random() * 4) * (Math.PI / 2);
+                    tile.rotation.set(0, randomRot, 0);
+                    
+                    tile.scale.set(1, 1, 1); // Ukuran normal, tidak ditarik
+                    
+                    this.floorGroup.add(tile);
+                }
+            }
+        }
+
+        // --- C. GEDUNG BATA (RUMAH) ---
+        if (models.buildingBrick) {
+            const brickBg = models.buildingBrick.scene;
+            brickBg.visible = true;
+            brickBg.position.set(-120, -2, 20); 
+            brickBg.rotation.set(0, -0.5, 0); 
+            brickBg.scale.set(5, 5, 5);
+            brickBg.traverse(o => o.frustumCulled = false);
+            scene.add(brickBg);
+        }
+
+        // --- C. GEDUNG Ruko (RUMAH) ---
+        if (models.buildingStore) {
+            const storeBg = models.buildingStore.scene;
+            storeBg.visible = true;
+            storeBg.position.set(-65, -0.5, -80); 
+            storeBg.rotation.set(0, -0.5, 0); 
+            storeBg.scale.set(5, 5, 5);
+            storeBg.traverse(o => o.frustumCulled = false);
+            scene.add(storeBg);
+        }
+
+        // --- D. SKYSCRAPER (BACKGROUND JAUH) ---
+        if (models.buildingHigh) {
+            const towerModel = models.buildingHigh.scene;
+            const skyscraper = models.buildingHigh.scene;
+            skyscraper.visible = true;
+            skyscraper.position.set(-180, -340, -20); 
+            skyscraper.scale.set(5, 20, 5); 
+            skyscraper.rotation.set(0, -0.5, 0);
+            skyscraper.traverse(o => o.frustumCulled = false);
+            scene.add(skyscraper);
+
+            const skyscraper1 = towerModel.clone();
+            skyscraper1.visible = true;
+            skyscraper1.position.set(-180, -340, -60); 
+            skyscraper1.scale.set(5, 20, 5); 
+            skyscraper1.rotation.set(0, -0.5, 0);
+            skyscraper1.traverse(o => o.frustumCulled = false);
+            scene.add(skyscraper1);
+            this.clones.push(skyscraper1);
+        }
+
+        // --- E. TUMPUKAN SAMPAH (SISI KIRI WALL-E) ---
+        if (models.trashPile) {
+            const pileModel = models.trashPile.scene;
+            const pile = models.trashPile.scene;
+            pile.visible = true;
+            pile.position.set(10, -0.25, 49); // Di Kiri Wall-E
+            pile.rotation.set(0, 2.5, 0); 
+            pile.scale.set(1, 1, 1);
+            scene.add(pile);
+
+            const pileLeft = pileModel.clone();
+            pileLeft.visible = true;
+            pileLeft.position.set(-100, -0.25, 20); // Kanan, agak mundur dikit
+            pileLeft.rotation.set(0, -0.5, 0);  // Rotasi beda biar gak kembar
+            pileLeft.scale.set(1.5, 1.5, 1.5);
+            scene.add(pileLeft);
+
+            const pileRight = pileModel.clone(); // Duplikat dari model asli
+            pileRight.visible = true;
+            pileRight.position.set(0, -0.25, -50); // Kanan
+            pileRight.rotation.set(0, -0.5, 0); 
+            pileRight.scale.set(1, 1, 1);
+            scene.add(pileRight);
+
+            const pileRightBack = pileModel.clone();
+            pileRightBack.visible = true;
+            pileRightBack.position.set(30, -0.25, -70); // Kanan, agak mundur dikit
+            pileRightBack.rotation.set(0, Math.PI, 0);  // Rotasi beda biar gak kembar
+            pileRightBack.scale.set(1.25, 1.25, 1.25);
+            scene.add(pileRightBack);
+        }
+        // ============================================================
+        // 2. SETUP KARAKTER
         // ============================================================
         
-        const wallE = models.wallE.scene;
         wallE.visible = true;
         scene.add(wallE);
-
         wallE.position.set(0, 0, 0); 
         wallE.rotation.set(0, 0, 0);
 
@@ -33,12 +168,12 @@ export default {
         bra.rotation.set(-1.4, 0.5, -1.5);
         scene.add(bra);
 
-        camera.position.set(10, 3, 7); // camera.position.set(10, 6, 5);
+        // Kamera
+        camera.position.set(10, 3, 7); 
         camera.lookAt(-4, 3, 0);
 
-
         // ============================================================
-        // 2. GET PARTS
+        // 3. ANIMASI (TIDAK BERUBAH)
         // ============================================================
         
         const rightArm = wallE.getObjectByName("hand_low002_wall_e_0");
@@ -58,25 +193,6 @@ export default {
             wallE.getObjectByName("trackGears4_low_wall_e_0"),
         ].filter(Boolean);
 
-
-        
-        const floorScene = models.floor.scene;
-        const floorMesh = floorScene.getObjectByName("Object_2");
-
-        if (floorMesh) {
-            floorScene.visible = true;
-
-            floorScene.position.set(0, -2, 0);
-            floorScene.rotation.set(0, 0, 0);
-            floorScene.scale.set(3, 3, 3);
-
-            scene.add(floorScene);
-        }
-
-        // ============================================================
-        // 3. TIMELINE
-        // ============================================================
-
         const tl = gsap.timeline({
             onComplete: onSceneComplete
         });
@@ -87,27 +203,24 @@ export default {
             rightArm.position.y = -1.6;
             rightArm.position.x = -2.5;
         }
-
         if (leftArm) {
             leftArm.rotation.set(-0.7, -0.9, -1.2);
             leftArm.position.z = -0.1;
             leftArm.position.y = -0.5;
         }
-
         if (neck) {
             neck.position.z = 0.0;
             neck.position.y = -0.2;
             neck.rotation.x = 0.55;
         }
-
         if (eyes) {
             eyes.position.z = 0.05;
             eyes.position.y = -0.7;
             eyes.rotation.set(0.6,0,0);
         }
         if (lenses) {
-            lenses.position.z = -0.3; // (0.9 - 2.3)
-            lenses.position.y = -0.6; // (0.15 - 3.5)
+            lenses.position.z = -0.3; 
+            lenses.position.y = -0.6; 
             lenses.rotation.set(0.6,0,0);
         }
 
@@ -119,6 +232,7 @@ export default {
 
         const wallEMixer = mixers.wallE;
         if (wallEMixer && models.wallE.animations.length > 0) {
+            wallEMixer.stopAllAction();
             models.wallE.animations.forEach(clip => {
                 const action = wallEMixer.clipAction(clip);
                 action.play();
@@ -126,6 +240,14 @@ export default {
                 this.state.trackActions.push(action);
             });
         }
+
+        this.originalParents = new Map();
+        [
+        rightArm, leftArm, neck, eyes, lenses,
+        ...bodyParts
+        ].filter(Boolean).forEach(p => {
+        this.originalParents.set(p, p.parent);
+        });
 
         
         this.leanGroup = new THREE.Group();
@@ -792,8 +914,6 @@ export default {
             duration: 0.3,
             ease: "back.out"
         }, "<");
-
-
         
         tl.to(wallE.rotation, {
             y: "+=0.55",
@@ -976,7 +1096,7 @@ export default {
 
         tl.to(bra.position, {
             // x: "+=0.9",
-            y: "-=1.2",
+            y: "-=1.6",
             // z: "-=0.3",
             duration: 0.2,
         }, "<");
@@ -996,7 +1116,7 @@ export default {
 
         tl.to(bra.position, {
             // x: "+=0.9",
-            y: "+=6.8",
+            y: "+=7.8",
             z: "-=1.8",
             // z: "-=0.3",
             duration: 0.2,
@@ -1016,10 +1136,6 @@ export default {
             duration: 0.6,
             ease: "back.inOut"
         }, "<");
-
-
-        
-
         
 
         this.timeline = tl;
@@ -1027,24 +1143,67 @@ export default {
 
     update(delta, context) {
         if (!this.state) return;
-
         const { wheels, wheelSpin, trackActions } = this.state;
-
-        trackActions.forEach(action => {
-            action.timeScale = wheelSpin * 0.1;
-        });
-
-        wheels.forEach(w => {
-            if (w) w.rotation.x += wheelSpin * delta;
-        });
+        trackActions.forEach(action => { action.timeScale = wheelSpin * 0.1; });
+        wheels.forEach(w => { if (w) w.rotation.x += wheelSpin * delta; });
     },
-
 
     end(context) {
         if (this.timeline) this.timeline.kill();
         
         const { models, scene } = context;
+        const wallE = models.wallE.scene;
+
+        if (this.originalParents) {
+            this.originalParents.forEach((parent, part) => {
+                parent.attach(part);
+            });
+            this.originalParents.clear();
+        }
+
+        if (this.eyeGroup) {
+            this.eyeGroup.removeFromParent();
+            this.eyeGroup = null;
+        }
+
+        if (this.leanGroup) {
+            this.leanGroup.removeFromParent();
+            this.leanGroup = null;
+        }
+
+        wallE.position.set(0, 0, 0);
+        wallE.rotation.set(0, 0, 0);
+        wallE.scale.set(1, 1, 1);
+
+
         scene.attach(models.bra.scene);
-        // models.bra.scene.visible = false;
+        models.bra.scene.visible = false; 
+        models.wallE.scene.visible = false; 
+
+        if(models.buildingBrick) models.buildingBrick.scene.visible = false;
+        if(models.buildingHigh) models.buildingHigh.scene.visible = false;
+        if(models.skyscraper1) models.buildingHigh.scene.visible = false;
+        if(models.buildingStore) models.buildingHigh.scene.visible = false;
+        if(models.trashPile) models.trashPile.scene.visible = false; 
+        if(models.floor) models.floor.scene.visible = false; 
+
+        if (this.envGroup) {
+            scene.remove(this.envGroup);
+            this.envGroup = null;
+        }
+        if (this.floorGroup) {
+            scene.remove(this.floorGroup);
+            this.floorGroup = null;
+        }
+        if (this.clones) {
+            this.clones.forEach(clone => {
+                scene.remove(clone);
+            });
+            this.clones = [];
+        }
+
+        if (this.sceneLight) scene.remove(this.sceneLight);
+        if (this.sceneSun) scene.remove(this.sceneSun);
+        scene.fog = null;
     }
 };

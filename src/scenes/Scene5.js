@@ -24,6 +24,7 @@ export default {
         
         if (floorMesh) {
             floorScene.visible = true;
+            floorScene.position.set(0, 0, 0);
             floorScene.scale.set(3, 3, 3); 
             scene.add(floorScene);
         }
@@ -249,6 +250,9 @@ export default {
         if (this.cubeGroup) {
             context.scene.remove(this.cubeGroup);
             this.cubeGroup = null;
+        }
+        if (context.models.floor) {
+            context.scene.remove(context.models.floor.scene);        
         }
     }
 };

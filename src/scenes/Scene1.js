@@ -5,6 +5,76 @@ export default {
     start(context, onSceneComplete) {
         const { models, camera, scene, mixers } = context;
 
+        if(models.trashPile) models.trashPile.scene.visible = false;
+        if(models.trashCube) models.trashCube.scene.visible = false;
+        if(models.buildingBrick) models.buildingBrick.scene.visible = false;
+        if(models.buildingHigh) models.buildingHigh.scene.visible = false;
+
+        if (mixers.wallE) mixers.wallE.stopAllAction();
+
+        const desertColor = 0xcc8e5a; 
+        scene.background = new THREE.Color(desertColor);
+        scene.fog = null; 
+
+        if (!this.sceneLight) {
+            this.sceneLight = new THREE.HemisphereLight(0xffaa00, 0x444444, 1.2);
+            scene.add(this.sceneLight);
+            this.sceneSun = new THREE.DirectionalLight(0xffffff, 2.0);
+            this.sceneSun.position.set(50, 100, 50);
+            scene.add(this.sceneSun);
+        }
+
+        if (models.floor) {
+            const floorModel = models.floor.scene;
+            floorModel.visible = true;
+            
+            this.floorGroup = new THREE.Group();
+            scene.add(this.floorGroup);
+
+            const tileSize = 10; 
+            for (let x = -5; x <= 5; x++) {
+                for (let z = -10; z <= 5; z++) {
+                    const tile = floorModel.clone();
+                    tile.position.set(x * tileSize, -0.5, z * tileSize);
+                    
+                    const randomRot = Math.floor(Math.random() * 4) * (Math.PI / 2);
+                    tile.rotation.set(0, randomRot, 0);
+                    
+                    this.floorGroup.add(tile);
+                }
+            }
+        }
+
+        if (models.waterPump) {
+            const pump = models.waterPump.scene;
+            pump.visible = true;
+            pump.position.set(-30, 0, -100); 
+            pump.scale.set(1, 1.4, 1); 
+            pump.rotation.set(0, -1.5, 0);
+            pump.traverse(o => o.frustumCulled = false);
+            scene.add(pump);
+        }
+
+        if (models.car) {
+            const car = models.car.scene;
+            car.visible = true;
+            car.position.set(-20, 1, 10); 
+            car.scale.set(7.5, 7.5, 7.5); 
+            car.rotation.set(0, 0, 0);
+            car.traverse(o => o.frustumCulled = false);
+            scene.add(car);
+        }
+
+        if (models.glass) {
+            const glass = models.glass.scene;
+            glass.visible = true;
+            glass.position.set(-17.5, 1.5, 12.4); 
+            glass.scale.set(2, 2, 2); 
+            glass.rotation.set(0.5, -1.5, 1);
+            glass.traverse(o => o.frustumCulled = false);
+            scene.add(glass);
+        }
+
         const wallE = models.wallE.scene;
         const boat = models.boat.scene;
         const roach = models.roach.scene;
@@ -530,7 +600,7 @@ export default {
     // 3. CLEANUP
     // ============================================================
 
-end(context) {
+    end(context) {
         gsap.killTweensOf(this.state);
         gsap.killTweensOf(context.camera.position);
         gsap.killTweensOf(context.camera.rotation);
@@ -541,5 +611,11 @@ end(context) {
 
         if (this.timeline) this.timeline.kill();
         this.state = null;
+
+        // [BARU] CLEANUP ENVIRONMENT
+        const { scene } = context;
+        
+        // Reset fog (opsional, jika scene lain pakai fog)
+        scene.fog = null;
     }
 };
