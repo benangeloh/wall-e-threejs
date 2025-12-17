@@ -976,7 +976,7 @@ export default {
 
         tl.to(bra.position, {
             // x: "+=0.9",
-            y: "-=1.2",
+            y: "-=1.6",
             // z: "-=0.3",
             duration: 0.2,
         }, "<");
@@ -996,7 +996,7 @@ export default {
 
         tl.to(bra.position, {
             // x: "+=0.9",
-            y: "+=6.8",
+            y: "+=7.8",
             z: "-=1.8",
             // z: "-=0.3",
             duration: 0.2,
@@ -1016,10 +1016,6 @@ export default {
             duration: 0.6,
             ease: "back.inOut"
         }, "<");
-
-
-        
-
         
 
         this.timeline = tl;
