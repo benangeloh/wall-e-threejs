@@ -792,8 +792,6 @@ export default {
             duration: 0.3,
             ease: "back.out"
         }, "<");
-
-
         
         tl.to(wallE.rotation, {
             y: "+=0.55",
@@ -1041,6 +1039,6 @@ export default {
         
         const { models, scene } = context;
         scene.attach(models.bra.scene);
-        // models.bra.scene.visible = false;
+        models.bra.scene.visible = false;
     }
 };
