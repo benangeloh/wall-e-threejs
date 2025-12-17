@@ -249,6 +249,14 @@ export default {
         this.originalParents.set(p, p.parent);
         });
 
+        this.originalParents = new Map();
+        [
+        rightArm, leftArm, neck, eyes, lenses,
+        ...bodyParts
+        ].filter(Boolean).forEach(p => {
+        this.originalParents.set(p, p.parent);
+        });
+
         
         this.leanGroup = new THREE.Group();
         wallE.add(this.leanGroup);
@@ -1097,6 +1105,7 @@ export default {
         tl.to(bra.position, {
             // x: "+=0.9",
             y: "-=1.6",
+            y: "-=1.6",
             // z: "-=0.3",
             duration: 0.2,
         }, "<");
@@ -1116,6 +1125,7 @@ export default {
 
         tl.to(bra.position, {
             // x: "+=0.9",
+            y: "+=7.8",
             y: "+=7.8",
             z: "-=1.8",
             // z: "-=0.3",
@@ -1150,7 +1160,6 @@ export default {
 
     end(context) {
         if (this.timeline) this.timeline.kill();
-
         const { models, scene } = context;
         const wallE = models.wallE.scene;
 
@@ -1174,32 +1183,30 @@ export default {
         wallE.position.set(0, 0, 0);
         wallE.rotation.set(0, 0, 0);
         wallE.scale.set(1, 1, 1);
-
-
-        scene.attach(models.bra.scene);
+        
+        scene.attach(models.bra.scene); 
         models.bra.scene.visible = false; 
         models.wallE.scene.visible = false; 
 
         if(models.buildingBrick) models.buildingBrick.scene.visible = false;
         if(models.buildingHigh) models.buildingHigh.scene.visible = false;
-        if(models.skyscraper1) models.buildingHigh.scene.visible = false;
         if(models.buildingStore) models.buildingHigh.scene.visible = false;
         if(models.trashPile) models.trashPile.scene.visible = false; 
-        if(models.floor) models.floor.scene.visible = false; 
+        if(models.floor) models.floor.scene.visible = false;
 
         if (this.envGroup) {
             scene.remove(this.envGroup);
             this.envGroup = null;
         }
-        if (this.floorGroup) {
-            scene.remove(this.floorGroup);
-            this.floorGroup = null;
-        }
         if (this.clones) {
             this.clones.forEach(clone => {
                 scene.remove(clone);
             });
-            this.clones = [];
+            this.clones = []; 
+        }
+        if (this.floorGroup) {
+            scene.remove(this.floorGroup);
+            this.floorGroup = null;
         }
 
         if (this.sceneLight) scene.remove(this.sceneLight);
