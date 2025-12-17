@@ -315,7 +315,7 @@ export default {
 
         tl.to([eyes.rotation, lenses.rotation], {
             z: "+=0.8",
-            duration: 0.2,
+            duration: 0.3,
             ease: "power1.out"
         });
 
@@ -326,14 +326,14 @@ export default {
             onStart: () => {
                 gsap.to(this.state, {
                     wheelSpin: -0.5,
-                    duration: 0.2,
+                    duration: 0.3,
                     ease: "power2.in"
                 });
             },
             onComplete: () => {
                 gsap.to(this.state, {
                     wheelSpin: 0,
-                    duration: 0.2,
+                    duration: 0.3,
                     ease: "power2.out"
                 });
             }
