@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; 
 import { AssetLoader } from './utils/AssetLoader.js';
 import { SceneManager } from './SceneManager.js';
 
@@ -8,6 +9,9 @@ import Scene3 from './scenes/Scene3.js';
 import Scene4 from './scenes/Scene4.js';    
 import Scene5 from './scenes/Scene5.js';
 import Scene6 from './scenes/Scene6.js';
+import Scene7 from './scenes/Scene7.js';
+import Scene8 from './scenes/Scene8.js';
+import Scene9 from './scenes/Scene9.js';
 
 async function init() {
     // --- 1. THREE.JS BOILERPLATE ---
@@ -21,6 +25,24 @@ async function init() {
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
 
+    // --- 2. SETUP ORBIT CONTROLS (DEV TOOL) ---
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; // Smooth motion
+    controls.dampingFactor = 0.05;
+
+    // --- 3. SETUP DEBUG UI ---
+    const debugDiv = document.createElement('div');
+    debugDiv.style.position = 'absolute';
+    debugDiv.style.top = '10px';
+    debugDiv.style.left = '10px';
+    debugDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    debugDiv.style.color = 'lime';
+    debugDiv.style.fontFamily = 'monospace';
+    debugDiv.style.padding = '10px';
+    debugDiv.style.pointerEvents = 'none'; // Let clicks pass through
+    debugDiv.style.userSelect = 'none';
+    document.body.appendChild(debugDiv);
+
     // Lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
@@ -29,7 +51,7 @@ async function init() {
     dirLight.castShadow = true;
     scene.add(dirLight);
 
-    // --- 2. LOAD ASSETS ---
+    // --- 4. LOAD ASSETS ---
     const assets = await AssetLoader.loadAll();
 
     // mixers setup
@@ -43,12 +65,11 @@ async function init() {
             : null
     };
 
-
-    // add models to scene immediately (visibility controllable inside scene modules)
+    // add models to scene immediately
     scene.add(assets.boat.scene);
     scene.add(assets.wallE.scene);
 
-    // --- 3. INIT SCENE MANAGER ---
+    // --- 5. INIT SCENE MANAGER ---
     const context = {
         scene,
         camera,
@@ -65,10 +86,13 @@ async function init() {
         // Scene3,  
         // Scene4,
         // Scene5,
-        Scene6
+        // Scene6,
+        // Scene7,
+        // Scene8,
+        Scene9
     ]);
 
-    // --- 4. START LOOP ---
+    // --- 6. START LOOP ---
     const clock = new THREE.Clock();
 
     function animate() {
@@ -76,13 +100,31 @@ async function init() {
         
         const delta = clock.getDelta();
 
-        // 1. update global mixers
+        // 1. Update controls
+        controls.update();
+
+        // 2. Update Debug Info
+        // Rounds to 2 decimal places for readability
+        const cx = camera.position.x.toFixed(2);
+        const cy = camera.position.y.toFixed(2);
+        const cz = camera.position.z.toFixed(2);
+        
+        // OrbitControls "target" is effectively the lookAt point
+        const tx = controls.target.x.toFixed(2);
+        const ty = controls.target.y.toFixed(2);
+        const tz = controls.target.z.toFixed(2);
+
+        debugDiv.innerHTML = `
+            <strong>Camera Pos:</strong> ${cx}, ${cy}, ${cz}<br>
+            <strong>LookAt:</strong> ${tx}, ${ty}, ${tz}
+        `;
+
+        // 3. update global mixers
         Object.values(mixers).forEach(mixer => {
             if (mixer) mixer.update(delta);
         });
 
-
-        // 2. update scene logic
+        // 4. update scene logic
         manager.update(delta);
 
         renderer.render(scene, camera);
