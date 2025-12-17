@@ -1150,7 +1150,7 @@ export default {
 
     end(context) {
         if (this.timeline) this.timeline.kill();
-        
+
         const { models, scene } = context;
         const wallE = models.wallE.scene;
 
