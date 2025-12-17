@@ -127,6 +127,14 @@ export default {
             });
         }
 
+        this.originalParents = new Map();
+        [
+        rightArm, leftArm, neck, eyes, lenses,
+        ...bodyParts
+        ].filter(Boolean).forEach(p => {
+        this.originalParents.set(p, p.parent);
+        });
+
         
         this.leanGroup = new THREE.Group();
         wallE.add(this.leanGroup);
@@ -1036,8 +1044,31 @@ export default {
 
     end(context) {
         if (this.timeline) this.timeline.kill();
-        
+
         const { models, scene } = context;
+        const wallE = models.wallE.scene;
+
+        if (this.originalParents) {
+            this.originalParents.forEach((parent, part) => {
+                parent.attach(part);
+            });
+            this.originalParents.clear();
+        }
+
+        if (this.eyeGroup) {
+            this.eyeGroup.removeFromParent();
+            this.eyeGroup = null;
+        }
+
+        if (this.leanGroup) {
+            this.leanGroup.removeFromParent();
+            this.leanGroup = null;
+        }
+
+        wallE.position.set(0, 0, 0);
+        wallE.rotation.set(0, 0, 0);
+        wallE.scale.set(1, 1, 1);
+
         scene.attach(models.bra.scene);
         models.bra.scene.visible = false;
     }
