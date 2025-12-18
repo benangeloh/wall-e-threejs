@@ -162,7 +162,7 @@ export default {
             ease: "power1.inOut",
         });
 
-        tl.to([eyes.position, lenses.position], {
+        tl.to([eyes.position], {
             y: "-=0.05",
             duration: 0.8,
             ease: "power3.in",

@@ -506,7 +506,7 @@ export default {
 
         // to edge of ramp
         tl.to(wallE.position, {
-            z: 8.5,
+            z: 11,
             duration: 0.6,
             ease: "power1.in",
             onStart: () => gsap.to(this.state, { wheelSpin: 10, duration: 0.5 })

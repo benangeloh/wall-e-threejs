@@ -13,6 +13,8 @@ export default {
         if(models.trashCube) models.trashCube.scene.visible = false;
         if(models.boat) models.boat.scene.visible = false;
         if(models.roach) models.roach.scene.visible = false;
+        if(models.waterPump) models.waterPump.scene.visible = false;
+
         if (mixers.wallE) mixers.wallE.stopAllAction();
         if (mixers.wallEKey) mixers.wallEKey.stopAllAction();
 
