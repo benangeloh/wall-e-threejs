@@ -211,8 +211,13 @@ export default {
             ease: "power4.inOut"
         }, "<")
 
-
-
+        tl.to({}, {
+            duration: 5.0,
+            onStart: () => {
+                window.fadeOverlay.style.transition = 'opacity 2s ease-in-out';
+                window.fadeOverlay.style.opacity = 1;
+            }
+        }, "+=1");
 
         this.timeline = tl;
     },
