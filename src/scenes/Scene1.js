@@ -11,17 +11,51 @@ export default {
         if(models.buildingHigh) models.buildingHigh.scene.visible = false;
 
         if (mixers.wallE) mixers.wallE.stopAllAction();
-
-        const desertColor = 0xcc8e5a; 
-        scene.background = new THREE.Color(desertColor);
-        scene.fog = null; 
-
+        // ============================================================
+        // CINEMATIC LIGHTING & ATMOSPHERE
+        // ============================================================
+        
+        // 2. Ambient Light (Base fill)
+        // Soft warm fill for shadows, preventing pitch black
         if (!this.sceneLight) {
-            this.sceneLight = new THREE.HemisphereLight(0xffaa00, 0x444444, 1.2);
+            this.sceneLight = new THREE.HemisphereLight(
+                0xffeeb1, // Sky color (warm pale yellow)
+                0x080820, // Ground color (cool dark blue for contrast in shadows)
+                0.8       // Intensity
+            );
             scene.add(this.sceneLight);
-            this.sceneSun = new THREE.DirectionalLight(0xffffff, 2.0);
-            this.sceneSun.position.set(50, 100, 50);
+
+            // 3. Sun Light (Main Key Light)
+            // Low angle for long shadows (Morning/Evening feel)
+            this.sceneSun = new THREE.DirectionalLight(0xffe2d1, 2.5); // Golden orange, bright
+            this.sceneSun.position.set(50, 40, 50); // Lower Y for longer shadows
+            this.sceneSun.castShadow = true;
+            
+            // Refine shadow properties for better look
+            this.sceneSun.shadow.mapSize.width = 2048;
+            this.sceneSun.shadow.mapSize.height = 2048;
+            this.sceneSun.shadow.camera.near = 0.5;
+            this.sceneSun.shadow.camera.far = 500;
+            this.sceneSun.shadow.bias = -0.0005; // Reduce shadow acne
+            
+            // Widen the shadow camera to cover the scene
+            const d = 50;
+            this.sceneSun.shadow.camera.left = -d;
+            this.sceneSun.shadow.camera.right = d;
+            this.sceneSun.shadow.camera.top = d;
+            this.sceneSun.shadow.camera.bottom = -d;
+
             scene.add(this.sceneSun);
+            
+            // 4. Rim Light (Optional but cinematic)
+            // Adds a highlight to the edges of Wall-E against the sun
+            this.rimLight = new THREE.DirectionalLight(0x88aaff, 0.8); // Cool blue rim
+            this.rimLight.position.set(-50, 20, -50); // Opposite to sun
+            scene.add(this.rimLight);
+
+            const rim = new THREE.DirectionalLight(0x88aaff, 0.4);
+            rim.position.set(-30, 20, -40);
+            scene.add(rim);
         }
 
         if (models.floor) {
@@ -612,7 +646,6 @@ export default {
         if (this.timeline) this.timeline.kill();
         this.state = null;
 
-        // [BARU] CLEANUP ENVIRONMENT
         const { scene } = context;
         
         // Reset fog (opsional, jika scene lain pakai fog)
