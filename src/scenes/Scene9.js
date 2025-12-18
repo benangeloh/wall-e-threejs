@@ -158,7 +158,7 @@ export default {
         tl.to(camera.position, {
             z: "+=3.7",     // pull back
             y: "-=2.2",     // lower slightly
-            duration: 5,
+            duration: 4,
             ease: "power1.inOut",
         });
 
@@ -217,7 +217,7 @@ export default {
                 window.fadeOverlay.style.transition = 'opacity 2s ease-in-out';
                 window.fadeOverlay.style.opacity = 1;
             }
-        }, "+=1");
+        });
 
         this.timeline = tl;
     },
