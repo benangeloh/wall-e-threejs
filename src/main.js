@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; 
 import { AssetLoader } from './utils/AssetLoader.js';
 import { SceneManager } from './SceneManager.js';
 import { Sky } from 'three/addons/objects/Sky.js';
@@ -16,8 +17,6 @@ import Scene9 from './scenes/Scene9.js';
 async function init() {
     // --- 1. THREE.JS BOILERPLATE ---
     const scene = new THREE.Scene();
-    // scene.background = new THREE.Color(0x333333);
-    // scene.fog = new THREE.Fog(0x333333, 10, 50);
 
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -28,7 +27,25 @@ async function init() {
     renderer.toneMappingExposure = 1.0;
     document.body.appendChild(renderer.domElement);
 
-    // Fade overlay
+    // --- 2. CONTROLS & DEBUG UI SETUP ---
+    
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; 
+    controls.dampingFactor = 0.05;
+    controls.enabled = false;
+
+    const debugDiv = document.createElement('div');
+    debugDiv.style.position = 'absolute';
+    debugDiv.style.top = '10px';
+    debugDiv.style.left = '10px';
+    debugDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    debugDiv.style.color = 'lime';
+    debugDiv.style.fontFamily = 'monospace';
+    debugDiv.style.padding = '10px';
+    debugDiv.style.pointerEvents = 'none';
+    debugDiv.style.display = 'none';
+    document.body.appendChild(debugDiv);
+
     const fadeOverlay = document.createElement('div');
     fadeOverlay.style.position = 'fixed';
     fadeOverlay.style.top = 0;
@@ -40,80 +57,45 @@ async function init() {
     fadeOverlay.style.pointerEvents = 'none';
     fadeOverlay.style.zIndex = 9999;
     fadeOverlay.style.transition = 'opacity 0.5s linear';
-
     document.body.appendChild(fadeOverlay);
-
-    // expose globally (or attach to context)
     window.fadeOverlay = fadeOverlay;
 
-
-    // Lights
-    // Renderer
+    // --- LIGHTS ---
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.physicallyCorrectLights = true;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.95;
 
-    // Ambient (cool fill)
-    const ambientLight = new THREE.HemisphereLight(
-        0xf2f6ff,   // sky
-        0x080820,   // ground
-        0.6
-    );
+    const ambientLight = new THREE.HemisphereLight(0xf2f6ff, 0x080820, 0.6);
     scene.add(ambientLight);
 
-    // Sun (key light)
     const sun = new THREE.DirectionalLight(0xffd2a1, 2.0);
     sun.position.set(50, 40, 25);
     sun.castShadow = true;
-
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.near = 1;
     sun.shadow.camera.far = 150;
-
     const d = 40;
     sun.shadow.camera.left = -d;
     sun.shadow.camera.right = d;
     sun.shadow.camera.top = d;
     sun.shadow.camera.bottom = -d;
-
     scene.add(sun);
 
     // --- SKY ---
     const sky = new Sky();
-    sky.scale.setScalar(1000); // very large dome
+    sky.scale.setScalar(1000); 
     scene.add(sky);
-
     const skyUniforms = sky.material.uniforms;
-
     skyUniforms['turbidity'].value = 10;
     skyUniforms['rayleigh'].value = 1.2;
     skyUniforms['mieCoefficient'].value = 0.035;
     skyUniforms['mieDirectionalG'].value = 0.9;
-
-    // skyUniforms['turbidity'].value = 8;
-    // skyUniforms['rayleigh'].value = 1.5;
-    // skyUniforms['mieCoefficient'].value = 0.02;
-    // skyUniforms['mieDirectionalG'].value = 0.85;
-    
-    // skyUniforms['turbidity'].value = 14;
-    // skyUniforms['rayleigh'].value = 1;
-    // skyUniforms['mieCoefficient'].value = 0.05;
-    // skyUniforms['mieDirectionalG'].value = 0.95;
-
-
-    // Match sun position
     const sunPosition = new THREE.Vector3();
     sunPosition.copy(sun.position).normalize();
     skyUniforms['sunPosition'].value.copy(sunPosition);
 
-
-
-    // --- 2. LOAD ASSETS ---
+    // --- 3. LOAD ASSETS ---
     const assets = await AssetLoader.loadAll();
-
-    // WALL-E (casts + receives)
     assets.wallE.scene.traverse(obj => {
         if (obj.isMesh) {
             obj.castShadow = true;
@@ -212,29 +194,24 @@ async function init() {
     });
 
 
-    // mixers setup
+    // Mixers setup
     const mixers = {
-        boat: assets.boat.animations.length > 0 
-            ? new THREE.AnimationMixer(assets.boat.scene)
-            : null,
-
-        wallE: assets.wallE.animations.length > 0 
-            ? new THREE.AnimationMixer(assets.wallE.scene)
-            : null
+        boat: assets.boat.animations.length > 0 ? new THREE.AnimationMixer(assets.boat.scene) : null,
+        wallE: assets.wallE.animations.length > 0 ? new THREE.AnimationMixer(assets.wallE.scene) : null,
+        wallEKey: assets.wallEKey.animations.length > 0 ? new THREE.AnimationMixer(assets.wallEKey.scene) : null // Added if needed
     };
 
-
-    // add models to scene immediately (visibility controllable inside scene modules)
     scene.add(assets.boat.scene);
     scene.add(assets.wallE.scene);
 
-    // --- 3. INIT SCENE MANAGER ---
+    // --- 4. INIT SCENE MANAGER ---
     const context = {
         scene,
         camera,
         renderer,
         models: assets,
-        mixers: mixers
+        mixers: mixers,
+        controls: controls
     };
 
     const manager = new SceneManager(context);
@@ -251,7 +228,38 @@ async function init() {
         Scene9
     ]);
 
-    // --- 4. START LOOP ---
+    // --- 5. TOGGLE LOGIC (FREE ROAM) ---
+    let isFreeRoam = false;
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'f' || e.key === 'F') {
+            isFreeRoam = !isFreeRoam;
+
+            if (isFreeRoam) {
+                controls.enabled = true;
+                debugDiv.style.display = 'block';
+                
+                manager.togglePause(true); 
+                
+                Object.values(mixers).forEach(m => m && (m.timeScale = 0));
+
+                const vector = new THREE.Vector3(0, 0, -1);
+                vector.applyQuaternion(camera.quaternion);
+                controls.target.copy(camera.position).add(vector.multiplyScalar(10)); 
+
+            } else {
+                controls.enabled = false;
+                debugDiv.style.display = 'none';
+
+                manager.togglePause(false);
+
+                Object.values(mixers).forEach(m => m && (m.timeScale = 1));
+            }
+        }
+    });
+
+
+    // --- 6. START LOOP ---
     const clock = new THREE.Clock();
 
     function animate() {
@@ -259,14 +267,27 @@ async function init() {
         
         const delta = clock.getDelta();
 
-        // 1. update global mixers
+        if (isFreeRoam) {
+            controls.update();
+
+            const cx = camera.position.x.toFixed(2);
+            const cy = camera.position.y.toFixed(2);
+            const cz = camera.position.z.toFixed(2);
+            const tx = controls.target.x.toFixed(2);
+            const ty = controls.target.y.toFixed(2);
+            const tz = controls.target.z.toFixed(2);
+
+            debugDiv.innerHTML = `
+                <span style="color:white"><strong>[FREE ROAM ON]</strong> (Press F to exit)</span><br>
+                <strong>Cam Pos:</strong> ${cx}, ${cy}, ${cz}<br>
+                <strong>LookAt:</strong> ${tx}, ${ty}, ${tz}
+            `;
+        }
+        manager.update(delta);
+
         Object.values(mixers).forEach(mixer => {
             if (mixer) mixer.update(delta);
         });
-
-
-        // 2. update scene logic
-        manager.update(delta);
 
         renderer.render(scene, camera);
     }
